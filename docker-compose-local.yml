@@ -1,0 +1,37 @@
+version: "3.8"
+name: prompts_app
+services:
+  local_prompts_db:
+    container_name: local_prompts_db
+    image: postgres:15-alpine
+    restart: always
+    env_file:
+      - local.env
+    networks:
+      - local-network
+    ports:
+      - 5433:5432
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  local_prompts_be:
+    build: .
+    container_name: local_prompts_be
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    env_file:
+      - local.env
+    depends_on:
+      - "local_prompts_db"
+    networks:
+      - local-network
+    ports:
+      - 8000:8000
+
+networks:
+  local-network:
+    driver: bridge
+    name: local-network
+
+volumes:
+  db:
+    driver: local
